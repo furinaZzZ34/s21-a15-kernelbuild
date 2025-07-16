@@ -1,0 +1,31 @@
+name: Build S21 Kernel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y bc bison build-essential curl flex git kmod libssl-dev libelf-dev \
+          libncurses5-dev libncursesw5-dev pkg-config python3 unzip zip
+
+      - name: Clone kernel source
+        run: |
+          git clone --depth=1 https://github.com/Samsung-OpenSource/kernel-samsung-exynos2100.git -b android-15 kernel
+          cd kernel
+
+      - name: Build kernel
+        run: |
+          cd kernel
+          make ARCH=arm64 exynos2100_defconfig
+          make -j$(nproc) ARCH=arm64
+
+      - name: Upload Image
+        uses: actions/upload-artifact@v
