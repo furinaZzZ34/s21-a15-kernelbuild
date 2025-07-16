@@ -1,0 +1,35 @@
+name: สร้างเคอร์เนล S21
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ดึงโค้ดจาก Repo
+        uses: actions/checkout@v3
+
+      - name: ติดตั้งเครื่องมือที่จำเป็น
+        run: |
+          sudo apt update
+          sudo apt install -y bc bison build-essential curl flex git kmod libssl-dev \
+            libncurses5-dev libncursesw5-dev pkg-config
+
+      - name: ดาวน์โหลดซอร์สเคอร์เนล
+        run: |
+          git clone --depth=1 https://github.com/Samsung/opensource/android_kernel_samsung_exynos2100 kernel
+          cd kernel
+
+      - name: คอมไพล์เคอร์เนล
+        run: |
+          cd kernel
+          make ARCH=arm64 exynos2100_defconfig
+          make -j$(nproc) ARCH=arm64
+
+      - name: อัปโหลดไฟล์ Image
+        uses: actions/upload-artifact@v3
+        with:
+          name: S21-Kernel
+          path: kernel/arch/arm64/boot/Image
